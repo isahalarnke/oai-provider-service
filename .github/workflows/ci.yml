@@ -25,7 +25,7 @@ jobs:
           docker-compose -f docker-compose.test.yaml down
 
       - name: Build and push Docker image
-        if: success() # Nur ausführen, wenn die vorherigen Schritte erfolgreich waren
+        if: success()
         run: |
           docker build -t ghcr.io/${{ github.repository }}:latest .
           docker push ghcr.io/${{ github.repository }}:latest
