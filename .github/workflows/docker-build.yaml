@@ -1,0 +1,30 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest .
+
+    - name: Run Docker container
+      env:
+        LOG_LEVEL: debug
+      run: docker run -e LOG_LEVEL=${{ env.LOG_LEVEL }} -d ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+
+    - name: Push Docker image
+      env:
+        GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      run: |
+        echo $GHCR_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
