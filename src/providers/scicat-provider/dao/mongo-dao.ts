@@ -1,7 +1,7 @@
-import logger from "../../../server/logger";
 import { reject } from "bluebird";
 import { MongoClient } from "mongodb";
 import { getCollectionID } from "../../../server/env";
+import logger from "../../../server/logger";
 
 /**
  * This is the DAO service for Scicat. It uses a mongo connection
@@ -13,6 +13,7 @@ export class MongoConnector {
   public db;
   public dbName: string;
   public collectionName: string;
+  public mongoDb: MongoClient ;
 
   private constructor() {
     logger.debug("Setting up the mongo connection.");
@@ -24,13 +25,20 @@ export class MongoConnector {
     this.dbName = process.env.DATABASE;
     this.collectionName = process.env.COLLECTION;
 
-    MongoClient.connect("mongodb://" + url, { useUnifiedTopology: true }, (err, client) => {
-      if (err) {
-        logger.error("failed to connect", err);
-        this.db = null;
-      }
-      this.db = client.db(this.dbName);
-    });
+    const  myUrl = "mongodb://"+url ;
+    this.mongoDb = new MongoClient(  myUrl );
+ 
+    this.mongoDb.connect()
+       .then( client => {
+            this.db = client.db(this.dbName) ;
+            logger.debug("Client succefully connected to: "+myUrl) ;
+          }
+       ).catch(
+          error => {
+             logger.error("Failed to connect to "+url+" : "+error.message);
+             this.db = null;
+          }
+       );
   }
 
   public static getInstance(): MongoConnector {
@@ -50,7 +58,7 @@ export class MongoConnector {
    * @param parameters
    * @returns {Promise<any>}
    */
-  public recordsQuery(parameters: any, filter: MongoClient.filter): Promise<any> {
+  public recordsQuery(parameters: any, filter: any): Promise<any> {
     if (!this.db) {
       reject("no db connection");
     }
@@ -71,7 +79,7 @@ export class MongoConnector {
    * @param parameters
    * @returns {Promise<any>}
    */
-  public identifiersQuery(parameters: any, filter: MongoClient.filter): Promise<any> {
+  public identifiersQuery(parameters: any, filter: any): Promise<any> {
     if (!this.db) {
       reject("no db connection");
     }
@@ -93,7 +101,7 @@ export class MongoConnector {
    * @param parameters
    * @returns {Promise<any>}
    */
-  public getRecord(parameters: any, filter: MongoClient.filter): Promise<any> {
+  public getRecord(parameters: any, filter: any): Promise<any> {
     if (!this.db) {
       reject("no db connection");
     }
