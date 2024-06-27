@@ -37,6 +37,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
+            type=ref,event=tag,pattern=v2.0
             type=raw,value=latest
           
 
@@ -46,4 +47,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64/v8
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+           ${{ steps.meta.outputs.tags }}
